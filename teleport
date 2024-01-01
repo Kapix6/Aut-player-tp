@@ -1,0 +1,83 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local teleporting = false
+local teleportEnabled = false
+
+-- Function to check if a player is alive
+local function isPlayerAlive(player)
+    return player and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0
+end
+
+-- Function to teleport the player near the nearest living player (excluding the local player)
+local function teleportNearNearestLivingPlayer()
+    local localPlayer = Players.LocalPlayer
+    local allPlayers = Players:GetPlayers()
+
+    -- Find the nearest living player (excluding the local player)
+    local nearestLivingPlayer = nil
+    local nearestDistance = math.huge
+
+    for _, p in pairs(allPlayers) do
+        if p ~= localPlayer and isPlayerAlive(p) then
+            local distance = (localPlayer.Character and p.Character and (localPlayer.Character:FindFirstChild("HumanoidRootPart").Position - p.Character:FindFirstChild("HumanoidRootPart").Position).Magnitude) or math.huge
+            if distance < nearestDistance then
+                nearestLivingPlayer = p
+                nearestDistance = distance
+            end
+        end
+    end
+
+    -- Teleport the local player near the nearest living player
+    if nearestLivingPlayer then
+        local targetPosition = nearestLivingPlayer.Character and nearestLivingPlayer.Character:FindFirstChild("HumanoidRootPart") and nearestLivingPlayer.Character.HumanoidRootPart.Position
+        if targetPosition then
+            local teleportPosition = targetPosition + Vector3.new(5, 0, 5) -- Adjust the offset as needed
+            localPlayer.Character:SetPrimaryPartCFrame(CFrame.new(teleportPosition))
+        end
+    end
+end
+
+-- Function to toggle teleportation loop
+local function toggleTeleportLoop()
+    teleportEnabled = not teleportEnabled
+
+    if teleportEnabled then
+        print("Teleportation loop enabled. Press T to start teleporting.")
+    else
+        teleporting = false
+        print("Teleportation loop stopped.")
+    end
+end
+
+-- Connect the toggle function to a key press
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if gameProcessedEvent then
+        return
+    end
+
+    if input.KeyCode == Enum.KeyCode.T then
+        if teleportEnabled then
+            teleporting = not teleporting
+
+            if teleporting then
+                print("Teleporting in loop. Press T again to stop.")
+            else
+                print("Teleportation loop stopped.")
+            end
+        else
+            toggleTeleportLoop()
+        end
+    elseif input.KeyCode == Enum.KeyCode.P then
+        toggleTeleportLoop()
+    end
+end)
+
+-- Teleport in a loop when enabled
+while true do
+    wait(0.5) -- Adjust the interval as needed
+
+    if teleporting and teleportEnabled then
+        teleportNearNearestLivingPlayer()
+    end
+end
