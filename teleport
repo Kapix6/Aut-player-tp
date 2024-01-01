@@ -75,7 +75,7 @@ end)
 
 -- Teleport in a loop when enabled
 while true do
-    wait(0.5) -- Adjust the interval as needed
+    wait(0.1) -- Adjust the interval as needed
 
     if teleporting and teleportEnabled then
         teleportNearNearestLivingPlayer()
